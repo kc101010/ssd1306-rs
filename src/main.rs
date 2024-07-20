@@ -1,3 +1,5 @@
+// https://nitschinger.at/Writing-an-embedded-display-driver-in-Rust/
+
 use rppal::i2c::I2c;
 use std::error::Error;
 use std::thread;
@@ -34,6 +36,35 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     thread::sleep(Duration::from_secs(5));
 
+    match oled.fill(0xFF){
+        Ok(_) => {println!("OLED fill");},
+        Err(error) => panic!("SSD1306 OLED Could not fill {:?} ", error),
+
+    };
+
+    thread::sleep(Duration::from_secs(5));
+
+    /*println!("Attempting to draw pixels");
+
+    match oled.draw_pixel(20, 20){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(30, 30){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+    
+    match oled.draw_pixel(40, 40){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+   
+    println!("End pixel attempt");
+
+    thread::sleep(Duration::from_secs(5));*/
+
     match oled.close(){
         Ok(_) => {println!("OLED close");},
         Err(error) => panic!("SSD1306 OLED Could not close {:?}: ", error),
@@ -42,3 +73,4 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
