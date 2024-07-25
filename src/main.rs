@@ -34,36 +34,38 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     };
     
-    thread::sleep(Duration::from_secs(5));
-
-    match oled.fill(0xFF){
+    /*match oled.fill(0xFF){
         Ok(_) => {println!("OLED fill");},
         Err(error) => panic!("SSD1306 OLED Could not fill {:?} ", error),
 
     };
 
-    thread::sleep(Duration::from_secs(5));
+    match oled.fill(0x00){
+        Ok(_) => {println!("OLED fill");},
+        Err(error) => panic!("SSD1306 OLED Could not fill {:?} ", error),
 
-    /*println!("Attempting to draw pixels");
+    };*/
 
-    match oled.draw_pixel(20, 20){
+    println!("Attempting to draw pixels");
+
+    match oled.draw_pixel(0, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
 
-    match oled.draw_pixel(30, 30){
+    match oled.draw_pixel(1, 1){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
     
-    match oled.draw_pixel(40, 40){
+    match oled.draw_pixel(2, 2){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
    
     println!("End pixel attempt");
 
-    thread::sleep(Duration::from_secs(5));*/
+    std::thread::sleep(Duration::from_secs(3));
 
     match oled.close(){
         Ok(_) => {println!("OLED close");},
@@ -74,3 +76,93 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+
+    #[test]
+    fn test_init(){
+        let i2c = I2c::new().expect("I2C err");
+        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+
+        assert_eq!(oled.init().ok(), Some(()));
+
+        match oled.close(){
+            Ok(_) => {println!("OLED close");},
+            Err(error) => panic!("SSD1306 OLED Could not close {:?}: ", error),
+    
+        };
+    }
+
+    #[test]
+    fn test_fill_blank(){
+        let i2c = I2c::new().expect("I2C err");
+        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        
+        match oled.init(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not init {:?}: ", error),
+    
+        };
+
+        assert_eq!(oled.fill(0x00).ok(), Some(()));
+
+        match oled.close(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not close {:?}: ", error),
+    
+        };
+
+    }
+
+    #[test]
+    fn test_fill_full(){
+        let i2c = I2c::new().expect("I2C err");
+        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        
+        match oled.init(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not init {:?}: ", error),
+    
+        };
+
+        assert_eq!(oled.fill(0xFF).ok(), Some(()));
+
+        match oled.close(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not close {:?}: ", error),
+    
+        };
+    }
+
+    #[test]
+    fn test_exit(){
+        let i2c = I2c::new().expect("I2C err");
+        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+
+        match oled.init(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not init {:?}: ", error),
+    
+        };
+
+        assert_eq!(oled.close().ok(), Some(()));
+    }
+    
+    #[test]
+    #[should_panic]
+    fn test_bad_exit(){
+        let i2c = I2c::new().expect("I2C err");
+        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+
+        match oled.close(){
+            Ok(_) => {},
+            Err(error) => panic!("SSD1306 OLED Could not close {:?}: ", error),
+    
+        };
+
+    }
+
+    
+}
