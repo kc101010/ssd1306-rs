@@ -1,8 +1,13 @@
-// https://nitschinger.at/Writing-an-embedded-display-driver-in-Rust/
-
+/// main.rs 
+/// 
+/// Written by Kyle Christie (kc101010), 05/10/2024
+/// 
+/// Project point of entry. Generally used for testing.
+/// 
+/// https://nitschinger.at/Writing-an-embedded-display-driver-in-Rust/
+/// 
 use rppal::i2c::I2c;
 use std::error::Error;
-use std::thread;
 use std::time::Duration;
 
 #[allow(non_camel_case_types)]
@@ -11,8 +16,7 @@ use std::time::Duration;
 mod i2cSupport;
 mod ssd1306;
 
-const OLED_ADDR: u16 = 0x3C;
-
+/// Main function, used for functional testing during development. 
 fn main() -> Result<(), Box<dyn Error>> {
 
     let i2c;
@@ -25,9 +29,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     
     //setup oled class with I2C address and instance
-    let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
-
-    //TEST CODE - init OLED, pause 5 secs then close
+    let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
+    
+    //TEST CODE
     match oled.init(){
         Ok(_) => {println!("OLED new");},
         Err(error) => panic!("SSD1306 OLED Could not init {:?}: ", error),
@@ -76,15 +80,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-
+/// Collection of unit tests to prove driver functionality
 #[cfg(test)]
 mod tests{
     use super::*;
 
+    /// Unit test to check whether init function succeeds
     #[test]
     fn test_init(){
         let i2c = I2c::new().expect("I2C err");
-        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
 
         assert_eq!(oled.init().ok(), Some(()));
 
@@ -95,10 +100,11 @@ mod tests{
         };
     }
 
+    /// Unit test for fill function with zeroed data
     #[test]
     fn test_fill_blank(){
         let i2c = I2c::new().expect("I2C err");
-        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
         
         match oled.init(){
             Ok(_) => {},
@@ -116,10 +122,11 @@ mod tests{
 
     }
 
+    /// Unit test for fill function with maxed data
     #[test]
     fn test_fill_full(){
         let i2c = I2c::new().expect("I2C err");
-        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
         
         match oled.init(){
             Ok(_) => {},
@@ -136,10 +143,11 @@ mod tests{
         };
     }
 
+    /// Unit test to check close function succeeds
     #[test]
     fn test_exit(){
         let i2c = I2c::new().expect("I2C err");
-        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
 
         match oled.init(){
             Ok(_) => {},
@@ -150,11 +158,12 @@ mod tests{
         assert_eq!(oled.close().ok(), Some(()));
     }
     
+    /// Unit test checks for panic if driver is closed without proper init
     #[test]
     #[should_panic]
     fn test_bad_exit(){
         let i2c = I2c::new().expect("I2C err");
-        let mut oled = ssd1306::ssd1306::get_struct(OLED_ADDR, i2c);
+        let mut oled = ssd1306::ssd1306::get_struct(ssd1306::OLED_ADDR, i2c);
 
         match oled.close(){
             Ok(_) => {},

@@ -1,17 +1,56 @@
+/// ssd1306.rs 
+/// 
+/// Written by Kyle Christie (kc101010), 05/10/2024
+/// 
+/// Class drives the ssd1306 OLED over i2c making use of
+/// rppal libraries. This code is specifically designed
+/// for use on raspberry pi. 
 use rppal::i2c::I2c;
 use std::error::Error;
+use std::mem::size_of;
 use crate::i2cSupport;
 
-const DISPLAY_BUFFER_SZ: usize = 1024;
+/// Const value for size of display buffer
+const DISPLAY_BUFFER_SZ: usize = 1024 + 1;
 
+/// Const value for OLED i2c address
+pub const OLED_ADDR: u16 = 0x3C;
+
+
+/// Underlying struct represents key OLED data
+/// 
+/// Data;
+/// 
+/// ``` address ```      - stores I2C address
+/// 
+/// ``` i2c_instance ``` - stores instance of underlying i2c driver
+/// 
+/// ``` display_buffer```- stores display buffer to be written to screen
+/// 
+/// Class drives the ssd1306 OLED screen using rppal library to provide
+/// control over i2c.  
+/// 
+/// Wider implementation gives various pieces of funcionality including;
+/// 
+/// + Filling the screen
+/// + Drawing individual pixels
 #[allow(non_camel_case_types)]
-pub struct ssd1306{
-    address: u16,
+pub struct ssd1306{ 
+    address: u16, 
     i2c_instance: I2c,
     display_buffer: [u8; DISPLAY_BUFFER_SZ],
 }
 
-//See sect. 9 of https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
+/// Enum of commands which can be written to the OLED.
+/// Encompasses named commands from datasheet that
+/// allow configuration of the SSD1306. 
+/// 
+/// This is then used in the config func to clarify
+/// which configs are being set and allow for easier
+/// reading.
+/// 
+/// 
+/// See sect. 9 of https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
 enum Commands{
@@ -21,7 +60,7 @@ enum Commands{
     DISPLAY_INVERSE = 0xA7,
     DISPLAY_OFF = 0xAE,
     DISPLAY_ON = 0xAF,
-    DISPLAY_CLK_FREQ = 0xD5,
+    SET_DISPLAY_CLK_FREQ = 0xD5,
 
     SEG_REMAP_NORMAL= 0xA0,
     SEG_REMAP_REVERSE = 0xA1,
@@ -33,8 +72,18 @@ enum Commands{
     SET_DISPLAY_OFFSET = 0xD3,
     SET_PRECHARGE = 0xD9,
     SET_MULTIPLEX = 0xA8,
-    SET_PAGE_ADDRESS = 0x22,
     SET_VCOMH_LEVEL = 0xDB,
+
+    SET_MEM_ADDRESS_MODE = 0x20,
+    SET_COLUMN_ADDRESS = 0x21,
+    SET_PAGE_ADDRESS = 0x22,
+
+    DEACTIVATE_SCROLL = 0x2E,
+    ACTIVATE_SCROLL = 0x2F,
+
+    SET_CONTRAST_CONTROL_BANK0 = 0x81,
+    SET_CHARGE_PUMP = 0x8D,
+    ENABLE_CHARGE_PUMP = 0x14,
 
     SET_PAGE_START_0 = 0xB0,
     SET_PAGE_START_1 = 0xB1,
@@ -47,23 +96,30 @@ enum Commands{
 
 }
 
+
+/// Class implements functionality for the SSD1306 OLED
 impl ssd1306{
-    //class setup
+    
+    /// Function allows access to struct data 
     pub fn get_struct(address: u16, instance: I2c) -> ssd1306{
         
+        //init class variables
         ssd1306 { address: address, i2c_instance: instance, display_buffer: [0; DISPLAY_BUFFER_SZ] }
     }
 
     //hardware init
     pub fn init(&mut self) -> Result<(), Box<dyn Error>>{
        
+        //set I2C slave address
         self.i2c_instance.set_slave_address(self.address)?;
         
+        //If config succeeds, print message and move otherwise panic
         match Self::config(&self){
             Ok(()) => println!("OLED setup"),
             Err(error) => panic!("SSD1306 OLED failed config {:?}: ", error),
         };
 
+        //Zero screen data - ensure screen is blank on startup
         self.fill(0x00)?;
         self.display_buffer[0] = 0x40;
         
@@ -73,8 +129,8 @@ impl ssd1306{
     //set OLED config
     fn config(&self) -> Result<(), Box<dyn Error>>{
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_OFF as u8)?;
-
-        i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_CLK_FREQ as u8)?;
+        
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_DISPLAY_CLK_FREQ as u8)?;
         i2cSupport::write_cmd(&self.i2c_instance, 0x80)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_MULTIPLEX as u8)?;
@@ -84,11 +140,13 @@ impl ssd1306{
         i2cSupport::write_cmd(&self.i2c_instance, 0x00)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, 0x40)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 0x8D)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 0x14)?;
 
-        i2cSupport::write_cmd(&self.i2c_instance, 0x20)?;
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_CHARGE_PUMP as u8)?;
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::ENABLE_CHARGE_PUMP as u8)?;
+
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_MEM_ADDRESS_MODE as u8)?;
         i2cSupport::write_cmd(&self.i2c_instance, 0x00)?;
+
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SEG_REMAP_REVERSE as u8)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::COMOUT_SCAN_REVERSE as u8)?;
@@ -96,7 +154,7 @@ impl ssd1306{
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_COM_PIN as u8)?;
         i2cSupport::write_cmd(&self.i2c_instance, 0x12)?;
 
-        i2cSupport::write_cmd(&self.i2c_instance, 0x81)?;
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_CONTRAST_CONTROL_BANK0 as u8)?;
         i2cSupport::write_cmd(&self.i2c_instance, 0x80)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_PRECHARGE as u8)?;
@@ -108,7 +166,7 @@ impl ssd1306{
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_ON_RESUME_RAM as u8)?;
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_NORMAL as u8)?;
 
-        i2cSupport::write_cmd(&self.i2c_instance, 0x2E)?;
+        i2cSupport::write_cmd(&self.i2c_instance, Commands::DEACTIVATE_SCROLL as u8)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_ON as u8)?;
 
@@ -118,19 +176,11 @@ impl ssd1306{
     //draw a pixel to the OLED
     pub fn draw_pixel(&mut self, x: u8, y: u8) -> Result<(), Box<dyn Error>>{
 
-        /*let offset: u8 = std::mem::size_of_val(&0x40) as u8; 
-       
-        let row: u8 = y / 8;
-        let cell: u8 = ((x + row * 64) + offset);
-        let bit: u8 = 1 << y  % 8;
+        let offset: i32 = size_of::<u8>().try_into().unwrap();
+        
+        self.display_buffer[((x + (y / 8) * 64 as u8) + offset as u8) as usize ] |= 1 << (y % 8);
 
-        let mut tmp: u8 = self.display_buffer[cell as usize];
-        tmp |= bit;
-        self.display_buffer[cell as usize] = tmp;*/
-
-        self.display_buffer[(x + (y / 8) * 64 as u8) as usize ] |= 1 << (y % 8);
-
-        i2cSupport::write_data(&self.i2c_instance, &self.display_buffer)?;
+        i2cSupport::write(&mut self.i2c_instance, &self.display_buffer)?;
 
         Ok(())
     }
@@ -139,11 +189,12 @@ impl ssd1306{
     //fill the OLED screen
     pub fn fill(&mut self, data: std::os::raw::c_uchar) -> Result<(), Box<dyn Error>>{
 
+        //fill display buffer with given data
         self.display_buffer.fill(data as u8);
 
-        for _data in self.display_buffer{
-            i2cSupport::write_data(&self.i2c_instance, &self.display_buffer)?;
-        }
+        //write display buffer over bus
+        //&self.i2c_instance.write(&self.display_buffer)?;
+        i2cSupport::write(&mut self.i2c_instance, &self.display_buffer)?;
 
         Ok(())
     }
@@ -151,7 +202,10 @@ impl ssd1306{
     //class exit
     pub fn close(&mut self) -> Result<(), Box<dyn Error>>{
 
+        //Empty RAM then turn display off
+        //self.display_buffer.iter_mut().for_each(|m| *m = 0x00);
         self.fill(0x00)?;
+        i2cSupport::write_data(&self.i2c_instance, &self.display_buffer)?;
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_OFF as u8)?;
         
         Ok(())
