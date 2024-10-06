@@ -52,17 +52,64 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Attempting to draw pixels");
 
+    /*for x in 1..1024 {
+        match oled.draw_pixel(x, 0){
+            Ok(_) => {println!("Pixel drawn");},
+            Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+        };
+    }*/
+
     match oled.draw_pixel(0, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
 
-    match oled.draw_pixel(1, 1){
+    match oled.draw_pixel(1, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
     
-    match oled.draw_pixel(2, 2){
+    match oled.draw_pixel(2, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(3, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(4, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(5, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(6, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(7, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(8, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(9, 0){
+        Ok(_) => {println!("Pixel drawn");},
+        Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
+    };
+
+    match oled.draw_pixel(10, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
