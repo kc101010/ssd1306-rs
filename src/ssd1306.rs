@@ -128,7 +128,12 @@ impl ssd1306{
         Ok(())
     }
 
-    //set OLED config
+    /// Set configuration for OLED over i2c
+    /// 
+    /// https://github.com/Dev4Embedded/ssd1306 - this driver helped figure some things out!
+    /// 
+    /// Note that when setting page and column addresses, that a start AND end address should
+    /// be provided!! If this is not provided then the display will give unexpected behaviour!
     fn config(&self) -> Result<(), Box<dyn Error>>{
        
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_OFF as u8)?;
@@ -151,13 +156,13 @@ impl ssd1306{
         i2cSupport::write_cmd(&self.i2c_instance, 0x00)?;
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_COLUMN_ADDRESS as u8)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 0x00)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 127)?;
+        i2cSupport::write_cmd(&self.i2c_instance, 0x00)?; //Start addr
+        i2cSupport::write_cmd(&self.i2c_instance, 127)?;  //End addr
 
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SET_PAGE_ADDRESS as u8)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 0x00)?;
-        i2cSupport::write_cmd(&self.i2c_instance, 7)?;
+        i2cSupport::write_cmd(&self.i2c_instance, 0x00)?; //Start addr
+        i2cSupport::write_cmd(&self.i2c_instance, 7)?;    //End addr
 
         i2cSupport::write_cmd(&self.i2c_instance, Commands::SEG_REMAP_REVERSE as u8)?;
 
@@ -212,7 +217,6 @@ impl ssd1306{
         self.display_buffer.fill(data as u8);
 
         //write display buffer over bus
-        //&self.i2c_instance.write(&self.display_buffer)?;
         i2cSupport::write(&mut self.i2c_instance, &self.display_buffer)?;
 
         Ok(())
@@ -222,7 +226,6 @@ impl ssd1306{
     pub fn close(&mut self) -> Result<(), Box<dyn Error>>{
 
         //Empty RAM then turn display off
-        //self.display_buffer.iter_mut().for_each(|m| *m = 0x00);
         self.fill(0x00)?;
         i2cSupport::write_data(&self.i2c_instance, &self.display_buffer)?;
         i2cSupport::write_cmd(&self.i2c_instance, Commands::DISPLAY_OFF as u8)?;
