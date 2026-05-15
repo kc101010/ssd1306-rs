@@ -209,6 +209,16 @@ impl ssd1306{
         Ok(())
     }
 
+    #[allow(unused_parens)]
+    pub fn draw_char(&mut self, x : i32, y : i32) -> Result<(), Box<dyn Error>>{
+        
+        //convert character to bitmap
+        //assign/draw bitmap to display buffer
+        //draw display buffer
+
+        Ok(())
+    }
+
 
     //fill the OLED screen
     pub fn fill(&mut self, data: std::os::raw::c_uchar) -> Result<(), Box<dyn Error>>{

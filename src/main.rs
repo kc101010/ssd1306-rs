@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     };
     
-    /*match oled.fill(0xFF){
+    match oled.fill(0xFF){
         Ok(_) => {println!("OLED fill");},
         Err(error) => panic!("SSD1306 OLED Could not fill {:?} ", error),
 
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Ok(_) => {println!("OLED fill");},
         Err(error) => panic!("SSD1306 OLED Could not fill {:?} ", error),
 
-    };*/
+    };
 
     println!("Attempting to draw pixels");
 
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         };
     }*/
 
-    match oled.draw_pixel(0, 0){
+    /*match oled.draw_pixel(0, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
     };
@@ -112,7 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match oled.draw_pixel(10, 0){
         Ok(_) => {println!("Pixel drawn");},
         Err(error ) => panic!("SSD1306 OLED Could not draw: {:?} ", error),
-    };
+    };*/
    
     println!("End pixel attempt");
 
